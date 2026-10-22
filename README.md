@@ -48,7 +48,7 @@ E2E 使用本機 Microsoft Edge headless。若電腦沒有 Edge，可在 playwri
 ## GitHub Pages
 
 前端使用相對 base，沒有需要伺服器重寫的路徑路由。建置產物只有 dist/，不可把根目錄所有附件當網站發布。
-已提供手動觸發 `.github/workflows/pages.yml`。建立 GitHub repository、提交程式碼、在 Settings → Pages 選 GitHub Actions，再執行 workflow。此工作階段沒有建立遠端 repository 或部署。
+已提供手動觸發 `.github/workflows/pages.yml`。建立 GitHub repository、提交程式碼、在 Settings → Pages 選 GitHub Actions，再執行 workflow。已建立儲存庫 https://github.com/yu-husn/idiom-king ，遊戲網址：https://yu-husn.github.io/idiom-king/ 。推送 main 會自動測試、建置與部署。
 公開展示只限虛構資料。正式班級使用必須先完成 P2 Supabase Auth、RLS、私人房間、伺服器判分，及 P4 教師後臺。
 
 ## 安全與目前限制
@@ -62,4 +62,5 @@ localStorage 可被修改；不是安全資料庫。虛構身分選單不是登�
 ## 使用者已確認修訂
 
 男女四組對應紅、藍、紫、黃。星璃使用藍色，第四位女生改名「映曦」，使用黃色，職業疾風射手，技能千羽風暴。
+
 
