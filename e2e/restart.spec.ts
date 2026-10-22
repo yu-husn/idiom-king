@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {questions} from '../src/data';
+import {currentQuestion} from './deck';
 test('正常操作12題未達標，重新開始清空本局並保留歷史；縮放仍可操作',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/');
@@ -8,12 +8,12 @@ test('正常操作12題未達標，重新開始清空本局並保留歷史；縮
   await page.getByRole('button',{name:'同機雙人',exact:true}).click();
   await page.getByRole('button',{name:'進入 103 年試煉'}).click();
   for(let i=0;i<12;i++){
-    const q=questions[i];
+    const q=await currentQuestion(page,i);
     if(q.options){
       await page.locator('.answer-player').nth(0).getByRole('button',{name:i<4?q.answer:q.options.find(o=>o!==q.answer)!,exact:false}).click();
       await page.locator('.answer-player').nth(1).getByRole('button',{name:q.answer,exact:false}).click();
     }else{
-      await page.getByLabel('左方答案',{exact:true}).fill(i===9?'付出少收穫多':q.answer);
+      await page.getByLabel('左方答案',{exact:true}).fill(i===11?'不確定':q.answer);
       await page.getByLabel('右方答案',{exact:true}).fill(q.answer);
     }
     await page.getByRole('button',{name:'鎖定左方答案',exact:true}).click();
@@ -35,7 +35,7 @@ test('正常操作12題未達標，重新開始清空本局並保留歷史；縮
   }
   await page.waitForTimeout(1800);
   await expect(page.locator('.feedback')).toHaveCount(0);
-  for(let p=0;p<2;p++)await page.locator('.answer-player').nth(p).getByRole('button',{name:questions[0].answer,exact:false}).click();
+  for(let p=0;p<2;p++)await page.locator('.answer-player').nth(p).getByRole('button',{name:(await currentQuestion(page,0)).answer,exact:false}).click();
   await page.getByRole('button',{name:'鎖定左方答案',exact:true}).click();
   await page.getByRole('button',{name:'鎖定右方答案',exact:true}).click();
   await expect(page.getByRole('progressbar',{name:'答題進度',exact:true})).toHaveAttribute('value','1');

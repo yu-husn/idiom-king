@@ -15,7 +15,7 @@ describe('計分與通關',()=>{
     m.rounds[11].answers[0]=a(true);
     expect(summarize(m,0)).toMatchObject({score:60,passed:true});
   });
-  it('12題、8/2/2，題號不重複且保留來源',()=>{
+  it('舊版歷史題組12題、8/2/2，題號不重複且保留來源',()=>{
     expect(questions).toHaveLength(12);expect(new Set(questions.map(q=>q.id)).size).toBe(12);
     expect(['choice','meaning','idiom'].map(k=>questions.filter(q=>q.kind===k).length)).toEqual([8,2,2]);
     expect(questions.every(q=>q.source&&q.year===103&&q.status==='needs_review')).toBe(true);
@@ -34,7 +34,7 @@ describe('計分與通關',()=>{
 describe('填充判分保守邊界',()=>{
   it('接受已收錄同義與標點',()=>expect(grade(questions[8],' 時間，飛逝。 ').verdict).toBe('correct'));
   it('否定不能因包含關鍵字被判對',()=>expect(grade(questions[8],'時間沒有飛逝').verdict).toBe('review'));
-  it('模糊、錯字交人工',()=>{expect(grade(questions[8],'很快').verdict).toBe('review');expect(grade(questions[10],'金科玉綠').verdict).toBe('review');});
+  it('舊解釋模糊待複核，填成語錯字判錯',()=>{expect(grade(questions[8],'很快').verdict).toBe('review');expect(grade(questions[10],'金科玉綠').verdict).toBe('incorrect');});
   it('空白0分',()=>expect(grade(questions[8],'  ').verdict).toBe('incorrect'));
   it('事倍功半不能收事半功倍',()=>expect(grade(questions[9],'事半功倍').verdict).toBe('incorrect'));
   it('不以為然與不以為意測試規則',()=>{const q:Question={...questions[8],answer:'不認同',accepted:['不認同','不同意'],rejected:['不放在心上']};expect(grade(q,'不同意').verdict).toBe('correct');expect(grade(q,'不放在心上').verdict).toBe('incorrect');});

@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {questions} from '../src/data';
+import {currentQuestion} from './deck';
 test('完整同機12題：左方60分通關、右方100分贏PK，重新整理後保留',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/');
@@ -8,14 +8,14 @@ test('完整同機12題：左方60分通關、右方100分贏PK，重新整理�
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByRole('progressbar',{name:'答題進度',exact:true})).toHaveAttribute('value','0');
   for(let i=0;i<12;i++){
-    const q=questions[i];
+    const q=await currentQuestion(page,i);
     const panels=page.locator('.answer-player');
     if(q.kind==='choice'){
       await panels.nth(0).getByRole('button',{name:i<6?q.answer:q.options!.find(o=>o!==q.answer)!,exact:false}).click();
       await panels.nth(1).getByRole('button',{name:q.answer,exact:false}).click();
     }else{
-      // First 12 answers correct; remaining left responses are pending and reviewed below.
-      await page.getByRole('textbox',{name:'左方答案'}).fill(false?q.answer:'不確定');
+      // Incorrect idiom entries immediately receive zero, with no AI/manual review.
+      await page.getByRole('textbox',{name:'左方答案'}).fill('不確定');
       await page.getByRole('textbox',{name:'右方答案'}).fill(q.answer);
     }
     await page.getByRole('button',{name:'鎖定左方答案',exact:true}).click();
@@ -24,11 +24,10 @@ test('完整同機12題：左方60分通關、右方100分贏PK，重新整理�
     await expect(page.getByRole('progressbar',{name:'答題進度',exact:true})).toHaveAttribute('value',String(i+1));
     if(i===4)await expect(page.getByLabel('左方試煉目標')).toContainText('必殺已觸發');
     if(i===5)await expect(page.getByLabel('左方試煉目標')).toContainText('已達分數門檻，完成12題後判定');
-    if(i===8)await expect(page.getByLabel('左方試煉目標')).toContainText('待複核');
+    if(i===8)await expect(page.locator('.feedback .incorrect')).toHaveCount(1);
     await page.getByRole('button',{name:i===11?'查看挑戰結果':'前往下一題',exact:false}).click();
   }
-  await expect(page.getByRole('heading',{name:'等待複核，暫不決定勝負'})).toBeVisible();
-  for(let i=0;i<4;i++)await page.getByRole('button',{name:'演練：判為錯誤',exact:true}).first().click();
+
   await expect(page.getByRole('heading',{name:'右方贏得對決！'})).toBeVisible();
   await expect(page.locator('.result-scores strong').first()).toHaveText('60 / 100');
   await expect(page.locator('.result-scores').getByText('✓ 達 60 分通關門檻')).toHaveCount(2);
@@ -81,7 +80,7 @@ test('八位英雄都可進入Phaser戰場，沒有載圖錯誤',async({page})=>
     await page.getByRole('combobox',{name:'對手角色'}).selectOption(String((i+1)%8));
     await page.getByRole('button',{name:'進入 103 年試煉'}).click();
     await expect(page.locator('canvas')).toBeVisible();
-    await page.locator('.options').getByRole('button',{name:questions[0].answer,exact:false}).click();
+    await page.locator('.options').getByRole('button',{name:(await currentQuestion(page,0)).answer,exact:false}).click();
     await page.getByRole('button',{name:'鎖定左方答案'}).click();
     await expect(page.locator('.feedback')).toBeVisible({timeout:7000});
     await page.getByRole('button',{name:'前往下一題',exact:false}).waitFor({state:'visible'});

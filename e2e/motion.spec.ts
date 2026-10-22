@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {questions} from '../src/data';
+import {currentQuestion} from './deck';
 
 test('放大角色在減少動態、低特效及窄視窗仍可答題',async({page})=>{
   await page.setViewportSize({width:390,height:844});
@@ -10,7 +10,7 @@ test('放大角色在減少動態、低特效及窄視窗仍可答題',async({pa
   await page.getByRole('button',{name:'進入 103 年試煉'}).click();
   await expect(page.locator('canvas')).toBeVisible();
   for(let i=0;i<2;i++){
-    await page.locator('.answer-player').nth(i).getByRole('button',{name:questions[0].answer,exact:false}).click();
+    await page.locator('.answer-player').nth(i).getByRole('button',{name:(await currentQuestion(page,0)).answer,exact:false}).click();
     await page.getByRole('button',{name:i?'鎖定右方答案':'鎖定左方答案',exact:true}).click();
   }
   await expect(page.locator('.feedback')).toBeVisible();

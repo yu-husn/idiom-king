@@ -1,10 +1,13 @@
-import {questions,questionPoints,QUESTION_COUNT,MATCH_VERSION,type Question} from './data';
+import {yearQuestions} from './annualBank';
+import {questionPoints,QUESTION_COUNT,MATCH_VERSION,type Question} from './data';
 export type Verdict='correct'|'incorrect'|'review';
 export type Answer={raw:string; verdict:Verdict; reason:string; elapsed:number; revised?:{from:Verdict;to:Verdict;at:string}[]};
 export type Round={questionId:string; answers:[Answer,Answer]};
-export type Match={id:string; profileId:string; opponentId:string; character:number; opponentCharacter?:number; mode:'bot'|'local'; difficulty:number; rounds:Round[]; createdAt:string; version:typeof MATCH_VERSION; complete:boolean};
+export type Match={id:string; year?:number; deck?:Question[]; profileId:string; opponentId:string; character:number; opponentCharacter?:number; mode:'bot'|'local'; difficulty:number; rounds:Round[]; createdAt:string; version:typeof MATCH_VERSION; complete:boolean};
+export const matchQuestions=(m:Match)=>m.deck??yearQuestions(m.year??103);
 export const normalize=(s:string)=>s.normalize('NFKC').replace(/[\s，。！？、；：「」『』,.!?;:"']/g,'').trim();
 export function grade(q:Question,raw:string):Pick<Answer,'verdict'|'reason'>{
+  if(q.kind==='idiom')return raw===q.answer?{verdict:'correct',reason:'與標準成語完全一致'}:{verdict:'incorrect',reason:raw.trim()?'須與標準成語逐字一致（含字形，不接受錯字、同義詞或額外標點）':'未作答／逾時'};
   const n=normalize(raw);
   if(!n) return {verdict:'incorrect',reason:'未作答／逾時'};
   if(q.accepted.some(a=>normalize(a)===n)) return {verdict:'correct',reason:'符合示範答案或收錄的同義表達'};
@@ -14,7 +17,7 @@ export function grade(q:Question,raw:string):Pick<Answer,'verdict'|'reason'>{
 }
 export function summarize(m:Match,player:0|1){
   const answers=m.rounds.map(r=>r.answers[player]);
-  const score=questions.reduce((total,q)=>total+(m.rounds.find(r=>r.questionId===q.id)?.answers[player].verdict==='correct'?questionPoints(q):0),0);
+  const score=matchQuestions(m).reduce((total,q)=>total+(m.rounds.find(r=>r.questionId===q.id)?.answers[player].verdict==='correct'?questionPoints(q):0),0);
   const pending=answers.filter(a=>a.verdict==='review').length;
   return {score,pending,passed:m.complete&&m.rounds.length===QUESTION_COUNT&&pending===0&&score>=60};
 }
@@ -24,7 +27,7 @@ export function outcome(m:Match):'pending'|'tie'|'left'|'right'{
   return a.score===b.score?'tie':a.score>b.score?'left':'right';
 }
 export function appendRound(m:Match,r:Round):Match {
-  if(m.complete||m.rounds.length>=QUESTION_COUNT||!questions.some(q=>q.id===r.questionId)||m.rounds.some(x=>x.questionId===r.questionId)) return m;
+  if(m.complete||m.rounds.length>=QUESTION_COUNT||!matchQuestions(m).some(q=>q.id===r.questionId)||m.rounds.some(x=>x.questionId===r.questionId)) return m;
   const rounds=[...m.rounds,r];
   return {...m,rounds,complete:rounds.length===QUESTION_COUNT};
 }

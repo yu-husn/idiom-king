@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {questions} from '../src/data';
+import {currentQuestion} from './deck';
 
 test('實際作答觸發蓄力、接近命中、收招，雙方依序出手',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
@@ -11,7 +11,7 @@ test('實際作答觸發蓄力、接近命中、收招，雙方依序出手',asy
   await expect(arena).toHaveAttribute('data-phase','待機');
   await page.clock.pauseAt(await page.evaluate(()=>new Date(Date.now()+1000).toISOString()));
   for(let i=0;i<2;i++){
-    await page.locator('.answer-player').nth(i).getByRole('button',{name:questions[0].answer,exact:false}).click();
+    await page.locator('.answer-player').nth(i).getByRole('button',{name:(await currentQuestion(page,0)).answer,exact:false}).click();
     await page.getByRole('button',{name:i?'鎖定右方答案':'鎖定左方答案',exact:true}).click();
   }
   await page.clock.runFor(200);
@@ -48,7 +48,7 @@ test('十秒黑字方框倒數，逾時保留已鎖定答案並只結算一次',
   const timer=page.getByRole('timer',{name:'作答倒數'});
   await expect(timer).toContainText('10');
   expect(await timer.locator('strong').evaluate(el=>getComputedStyle(el).color)).toBe('rgb(0, 0, 0)');
-  await page.locator('.answer-player').first().getByRole('button',{name:questions[0].answer,exact:false}).click();
+  await page.locator('.answer-player').first().getByRole('button',{name:(await currentQuestion(page,0)).answer,exact:false}).click();
   await page.getByRole('button',{name:'鎖定左方答案',exact:true}).click();
   await page.clock.runFor(7200);
   await expect(timer).toHaveClass(/urgent/);
