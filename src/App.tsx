@@ -201,7 +201,7 @@ export default function App(){
       <div className="result-scores">{[0,1].map(p=>{const s=summarize(match,p as 0|1);return <div key={p}><span>{p?'右方':'左方'}分數</span><strong>{s.score}<small> / 100</small></strong><p>{s.pending?`${s.pending} 題待複核，正式分數未定`:s.passed?'✓ 達 60 分通關門檻':'未達 60 分，可再次挑戰'}</p></div>;})}</div>
       <p>PK 勝負與通關分開計算。完成12題、達60分且無待複核題，可解鎖下一年度練習。</p>
       <div className="actions"><button className="primary" onClick={()=>start(false,match.year??103)}>再次挑戰</button><button onClick={()=>setPage('lobby')}>返回大廳</button><button onClick={exportData}>匯出我的練習紀錄</button></div>
-      <h2>逐題紀錄與本機複核演練</h2><p className="hint">這是公開的測試介面，不是教師登入後臺。自由回答未收錄時，可在此演練改判。</p>
+      <h2>逐題紀錄</h2><p className="hint">填成語須與標準答案逐字一致，不使用 AI 判題。{questions.some(q=>q.kind==='meaning')?'此為舊版紀錄，待複核答案可在本機演練改判。':''}</p>
       <div className="review-list">{match.rounds.map((r,i)=><details key={r.questionId} open={r.answers.some(a=>a.verdict==='review')}><summary>{i+1}. {questions[i].prompt} <span>{labels[r.answers[0].verdict]} / {labels[r.answers[1].verdict]}</span></summary>
         <p>參考答案：{questions[i].answer}</p><p className="hint">{questions[i].source}</p>
         {r.answers.map((a,p)=><div className="review-answer" key={p}><p>{p?'右方':'左方'}：「{a.raw||'未作答'}」 · {(a.elapsed/1000).toFixed(1)} 秒 · {labels[a.verdict]}</p>
